@@ -21,3 +21,4 @@ pkg
 ## PROJECT::SPECIFIC
 /db/test.db
 /db/development.db
+/.bundle/config
