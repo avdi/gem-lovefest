@@ -1,4 +1,5 @@
 - notes.each do |note|
   %li.note
-    .gem_name= note.gem_name
+    .gem_name
+      %a{:href => "/gems/#{note.gem_name}"}= note.gem_name
     %p.comment= note.comment

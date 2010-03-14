@@ -8,6 +8,10 @@ module GemLovefest
 
     has n, :notes, :child_key => [:gem_name]
 
+    def url
+      "http://rubygems.org/gems/#{gem_name}"
+    end
+
     def validate_gem_name_known
       !gem_matches.empty? ||
         [false, "gem '#{gem_name}' could not be found"]

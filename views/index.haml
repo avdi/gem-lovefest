@@ -1,3 +1,9 @@
+%h1 Gem Love
+%h2
+  Tracking community appreciation for 
+  = Rubygem.count
+  RubyGems
+%h3 Recent love notes
 %ul#recent_notes.notes
   = render :haml, :notes, :locals => { :notes => notes }, :layout => false
 
