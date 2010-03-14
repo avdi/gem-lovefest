@@ -1,7 +1,8 @@
 !!!
 %html
   %head
-    %title= defined?(title) ? title : "Gem Love"
+    %title= defined?(title) ? "Gem Love - #{title}" : "Gem Love"
+    %link(rel="stylesheet" type="text/css" href="/main.css")
   %body
     = yield
   

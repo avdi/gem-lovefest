@@ -7,6 +7,7 @@ require 'haml'
 
 set :haml, {:format => :html5}
 set :views, File.expand_path('../../views', File.expand_path(File.dirname(__FILE__)))
+set :public, File.expand_path('../../public', File.expand_path(File.dirname(__FILE__)))
 
 include GemLovefest
 
@@ -45,7 +46,9 @@ get "/" do
   links = LinkHeader.new(
     [[notes_url.to_s, [["rel", "http://gem-love.avdi.org/relations#notes"]]]])
   headers['Link'] = links.to_s
-  render :haml, :index, :locals => { :notes => Note.all }
+  render :haml, :index, :locals => { 
+    :notes => Note.all(:limit => 10, :order => [:created_at.desc]) 
+  }
 end
 
 post "/notes" do
@@ -58,6 +61,15 @@ post "/notes" do
     error 400, validation_error_message(note)
   end
   headers['Location'] = "/gems/#{note.gem_name}/notes/#{note.position}"
+end
+
+get "/gems/:gem_name" do |gem_name|
+  gem = Rubygem.get(gem_name)
+  error 404, "Gem not found" unless gem
+  render :haml, :gem, :locals => { 
+    :gem       => gem,
+    :fan_count => gem.notes.count
+  }
 end
 
 get "/gems/:gem_name/notes/:position" do |gem_name, position|

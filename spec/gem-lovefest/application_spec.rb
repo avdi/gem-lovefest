@@ -12,6 +12,14 @@ module GemLovefest
       Sinatra::Application
     end
 
+    def last_doc
+      Nokogiri::HTML(last_response.body)
+    end
+
+    def last_text
+      last_doc.text.tr_s("\n\t ",' ')
+    end
+
     before :each do
       @fetcher = stub("Gem Fetcher", :fetch => ["not empty!"])
       Rubygem.fetcher_maker = lambda { @fetcher }
@@ -50,7 +58,7 @@ module GemLovefest
             Note.create(
               :email_address => "user#{i}@example.org",
               :gem_name      => "gem#{i}",
-              :comment       => "Comment #{i}",
+              :comment       => "Comment #{i+1}",
               :created_at    => Time.mktime(1970,1,i+1))
           end
         end
@@ -61,6 +69,51 @@ module GemLovefest
             last_response.body.should include("Comment #{n}")
           end
         end
+
+        it "should only show 10 most recent notes" do
+          do_request
+          last_response.should have_tags('li.note') { |notes|
+            notes.should have(10).elements
+            notes.should have_tags('.comment', "Comment 11")
+            notes.should_not have_tags('.comment', "Comment 1")
+          }
+        end
+      end
+    end
+
+    describe "GET /gems/GEM_NAME" do
+      def do_request
+        get '/gems/TEST_GEM'
+      end
+
+      before do
+        3.times do |i|
+          Note.create(
+            :email_address => "user#{i}@example.org",
+            :gem_name      => "TEST_GEM",
+            :comment       => "Comment #{i+1}")
+        end
+        Note.create(
+          :email_address => "bob@example.org",
+          :gem_name      => "OTHER_GEM",
+          :comment       => "Comment 4")
+      end
+
+      it "should succeed" do
+        do_request
+        last_response.should be_ok
+      end
+
+      it "should show the note count" do
+        do_request
+        last_text.should include("TEST_GEM is loved by 3 people")
+      end
+
+      it "should show the notes" do
+        do_request
+        last_text.should include("Comment 1")
+        last_text.should include("Comment 2")
+        last_text.should include("Comment 3")
       end
     end
 

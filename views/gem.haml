@@ -1,0 +1,7 @@
+%h1
+  %span#gem_name= gem.gem_name
+  is loved by
+  %span#fan_count= fan_count
+  = fan_count == 1 ? "person" : "people"
+%ul#gem_notes.notes
+  =render :haml, :notes, :locals => { :notes => gem.notes }, :layout => false
