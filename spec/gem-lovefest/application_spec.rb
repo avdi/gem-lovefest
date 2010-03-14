@@ -14,7 +14,7 @@ module GemLovefest
 
     before :each do
       @fetcher = stub("Gem Fetcher", :fetch => ["not empty!"])
-      Note.fetcher_maker = lambda { @fetcher }
+      Rubygem.fetcher_maker = lambda { @fetcher }
       @transaction = DataMapper.repository.transaction
       @transaction.begin
       DataMapper.repository.adapter.push_transaction(@transaction)
@@ -42,6 +42,25 @@ module GemLovefest
           ["rel", "http://gem-love.avdi.org/relations#notes"])
         notes_url  = notes_link.href
         notes_url.should == "http://example.org/notes"
+      end
+
+      context "with some recent notes" do
+        before do
+          11.times do |i|
+            Note.create(
+              :email_address => "user#{i}@example.org",
+              :gem_name      => "gem#{i}",
+              :comment       => "Comment #{i}",
+              :created_at    => Time.mktime(1970,1,i+1))
+          end
+        end
+
+        it "should show the notes" do
+          do_request
+          (1..10).each do |n|
+            last_response.body.should include("Comment #{n}")
+          end
+        end
       end
     end
 
@@ -134,5 +153,6 @@ module GemLovefest
       end
 
     end
+
   end
 end

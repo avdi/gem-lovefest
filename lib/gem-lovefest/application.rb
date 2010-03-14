@@ -3,56 +3,12 @@ require 'sinatra'
 require 'addressable/uri'
 require 'link_header'
 require 'logger'
-require 'datamapper'
-require 'dm-is-list'
+require 'haml'
 
-class Rubygem
-  include DataMapper::Resource
+set :haml, {:format => :html5}
+set :views, File.expand_path('../../views', File.expand_path(File.dirname(__FILE__)))
 
-  property :gem_name, String, :key => true
-
-  has n, :notes, :child_key => [:gem_name]
-end
-
-class Note
-  include DataMapper::Resource
-
-  belongs_to :rubygem, :child_key => [:gem_name]
-  is :list, :scope => [:gem_name]
-
-  property :email_address, String, :key => true
-  property :gem_name,      String, :key => true
-  property :comment,       Text
-
-  validates_format :email_address, :as => :email_address
-  validates_with_method :gem_name, :method => :validate_gem_name_known
-
-  before :create do
-    Rubygem.create(:gem_name => gem_name)
-  end
-
-  def self.fetcher_maker
-    @fetcher_maker ||= lambda { Gem::SpecFetcher.fetcher }
-  end
-
-  def self.fetcher_maker=(proc)
-    @fetcher_maker = proc
-  end
-
-  def validate_gem_name_known
-    !gem_matches.empty? ||
-      [false, "gem '#{gem_name}' could not be found"]
-  end
-
-  private
-
-  def gem_matches
-    return @gem_matches if defined?(@gem_matches)
-    fetcher  = self.class.fetcher_maker.call
-    results = fetcher.fetch(Gem::Dependency.new(gem_name))
-  end
-
-end
+include GemLovefest
 
 configure do
   set :logger, Logger.new($stdout)
@@ -62,14 +18,23 @@ configure :test do
   DataMapper.setup(:default, 
     :adapter  => "sqlite3",
     :database => File.expand_path('../../db/test.db', File.dirname(__FILE__)))
-  Note.auto_migrate!
-  Rubygem.auto_migrate!
+end
+
+configure :development do
+  DataMapper.setup(:default, 
+    :adapter  => "sqlite3",
+    :database => File.expand_path('../../db/development.db', File.dirname(__FILE__)))
+end
+
+configure :test, :development do
+  DataMapper.repository.auto_upgrade!
 end
 
 helpers do
   def validation_error_message(resource)
     "Unable to complete your request: \n  - " +
-      resource.errors.full_messages.join("\n  - ")
+      resource.errors.full_messages.join("\n  - ") +
+      "\n"
   end
 end
 
@@ -80,7 +45,7 @@ get "/" do
   links = LinkHeader.new(
     [[notes_url.to_s, [["rel", "http://gem-love.avdi.org/relations#notes"]]]])
   headers['Link'] = links.to_s
-  "Welcome to Gem Love"
+  render :haml, :index, :locals => { :notes => Note.all }
 end
 
 post "/notes" do
