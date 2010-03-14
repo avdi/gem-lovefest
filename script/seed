@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+# TODO de-duplicate the following from script/console
+require File.expand_path('../lib/gem-lovefest', File.dirname(__FILE__))
+include GemLovefest
+db_file = File.expand_path('../db/development.db', File.dirname(__FILE__))
+DataMapper.setup(:default, "sqlite3://#{db_file}")
+DataMapper.repository.auto_upgrade!
+
+Note.create(:gem_name => "jeweler", :email_address => "bob@example.com", 
+  :comment => "This is awesome!")
+Note.create(:gem_name => "boson", :email_address => "joe@example.com", 
+  :comment => "So great it makes me cry")
+Note.create(:gem_name => "hammertime", :email_address => "sue@example.com", 
+  :comment => "Stop! Whats the time?")
+Note.create(:gem_name => "jeweler", :email_address => "tom@example.com", 
+  :comment => "Tastes like pickles")
+
