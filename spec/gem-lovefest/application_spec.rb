@@ -122,7 +122,8 @@ module GemLovefest
         post("/notes", {
             :email_address => "TEST_EMAIL@example.org",
             :gem_name      => "TEST_GEM",
-            :comment       => comment
+            :comment       => comment,
+            :name          => "Tom Servo"
           }.merge(options))
       end
       
@@ -140,6 +141,24 @@ module GemLovefest
       it "should write the submitted email address" do
         do_request
         Note.first(:email_address => "TEST_EMAIL@example.org").should_not be_nil
+      end
+
+      it "should instantiate a gem user for the email address" do
+        do_request
+        User.get("TEST_EMAIL@example.org").should_not be_nil
+      end
+
+      it "should associate the note with the appropriate user" do
+        do_request
+        user = User.get("TEST_EMAIL@example.org")
+        note = Note.first(:gem_name => "TEST_GEM")
+        note.user.should == user
+        user.notes.should include(note)
+      end
+
+      it "should save save the user name to the created user object" do
+        do_request
+        user = User.get("TEST_EMAIL@example.org").name.should == "Tom Servo"
       end
 
       it "should write the submitted gem name" do

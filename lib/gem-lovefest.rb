@@ -16,3 +16,5 @@ require 'dm-validations'
 $:.unshift(File.expand_path(File.dirname(__FILE__)))
 require 'gem-lovefest/rubygem'
 require 'gem-lovefest/note'
+require 'gem-lovefest/user'
+

@@ -53,14 +53,16 @@ end
 
 post "/notes" do
   note = Note.first_or_new(
-      :email_address => params[:email_address], 
-      :gem_name      => params[:gem_name])
+    :email_address => params[:email_address], 
+    :gem_name      => params[:gem_name])
   note.comment = params[:comment]
+  note.name    = params[:name]
   status note.new? ? 201 : 200
   unless note.save
     error 400, validation_error_message(note)
   end
   headers['Location'] = "/gems/#{note.gem_name}/notes/#{note.position}"
+  "Your appreciation for #{note.gem_name} has been recorded!"
 end
 
 get "/gems/:gem_name" do |gem_name|
