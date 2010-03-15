@@ -54,7 +54,7 @@ end
 post "/notes" do
   note = Note.first_or_new(
     :email_address => params[:email_address], 
-    :gem_name      => params[:gem_name],)
+    :gem_name      => params[:gem_name])
   note.comment = params[:comment]
   note.name    = params[:name]
   status note.new? ? 201 : 200
